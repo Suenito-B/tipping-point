@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tipping Point</title>
+<style>
+:root{--bg:#e8ecef;--fg:#1c2530;--mut:#5f6b76;--rock:#c3cbd2;--p1:#e0a21c;--p2:#4b5bd6;--table:#5d6b78;--ground:#cfd7de;--card:#f7f9fa;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--fg:#e6ebef;--mut:#92a0ac;--rock:#3a444d;--p1:#f0b73a;--p2:#8794f4;--table:#8795a2;--ground:#232a31;--card:#1d242b}}
+:root[data-theme="dark"]{--bg:#14181d;--fg:#e6ebef;--mut:#92a0ac;--rock:#3a444d;--p1:#f0b73a;--p2:#8794f4;--table:#8795a2;--ground:#232a31;--card:#1d242b}
+html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:16px/1.3 "Avenir Next","Trebuchet MS",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-user-select:none;user-select:none}
+header{padding:10px 16px 4px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#tn{font-size:20px;font-weight:700}#ph{color:var(--mut);font-size:14px}#cnt{font-size:18px;letter-spacing:2px}
+main{flex:1;min-height:0;position:relative}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+footer{padding:6px 16px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px}
+#hint{color:var(--mut);font-size:14px;flex:1}
+.btn{border:1.5px solid var(--fg);background:transparent;color:var(--fg);border-radius:12px;padding:10px 16px;font:inherit;font-size:18px}
+#rot{display:flex;gap:6px}#rot .btn{padding:10px 13px}
+#toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+#over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,14,18,.45)}
+#over[hidden]{display:none}
+.card{background:var(--card);border-radius:18px;padding:24px;text-align:center;max-width:280px}
+.card h2{margin:0 0 6px;font-size:24px}.card p{margin:0 0 16px;color:var(--mut)}
+#title{position:fixed;inset:0;z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 24px env(safe-area-inset-bottom,0px);text-align:center}
+#title[hidden],#t1[hidden],#t2[hidden],#t3[hidden],#t4[hidden]{display:none}
+#t1,#t2,#t3,#t4{display:flex;flex-direction:column;align-items:center;gap:14px}
+.mc{width:min(320px,100%);box-sizing:border-box;text-align:left;border:1.5px solid var(--fg);border-radius:14px;padding:12px 14px;background:transparent;color:var(--fg);font:inherit;display:flex;flex-direction:column;gap:4px}
+.mc b{font-size:20px}.mc span{color:var(--mut);font-size:14px}.mc[disabled]{opacity:.4;border-color:var(--mut)}
+.mc i{font-style:normal;font-size:11px;border:1px solid var(--mut);border-radius:8px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.bk{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:16px;border:none;background:transparent;color:var(--fg);font-size:28px;padding:6px 12px}
+#cd{touch-action:none}
+#bk2{position:absolute;bottom:8%;left:0;right:0;display:none;flex-direction:column;align-items:center;gap:12px}
+#title{overflow:auto}input{-webkit-user-select:text;user-select:text}
+.pc{width:min(320px,100%);box-sizing:border-box;text-align:left;border:1.5px solid var(--mut);border-radius:14px;padding:12px}
+.pc input{width:100%;box-sizing:border-box;font:inherit;font-size:18px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--mut);background:var(--card);color:var(--fg)}
+.sw,.ch{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.dot{width:32px;height:32px;border-radius:50%;border:2px solid transparent;padding:0}
+.dot.on{border-color:var(--fg);box-shadow:inset 0 0 0 2px var(--bg)}.dot[disabled]{opacity:.2}
+.chip{border:1px solid var(--mut);background:transparent;color:var(--fg);border-radius:14px;padding:4px 10px;font:inherit;font-size:14px}
+h1.tt{font-size:36px;margin:0;font-weight:700;letter-spacing:.5px}.sub{color:var(--mut);margin:0}
+.btn.big{font-size:20px;padding:14px 36px;background:var(--fg);color:var(--bg)}
+#cd{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:12%;gap:10px;text-align:center;z-index:3}
+#cd.o{background:var(--bg);justify-content:center;padding-top:0}
+#cd[hidden]{display:none}#cd h2{margin:0;font-size:30px}#cd p{margin:0;color:var(--mut)}
+#cd.z h2,#cd.z p,#cd.z #coinw{display:none!important}
+#tap{position:absolute;bottom:10%;left:0;right:0;color:var(--mut);font-size:15px;opacity:0;animation:fd 2s ease-in-out .6s infinite}
+@keyframes fd{0%,100%{opacity:.15}50%{opacity:1}}
+#coinw{perspective:600px;position:absolute;bottom:20%;left:50%;margin-left:-85px;padding:70px 30px 20px}
+#arw{position:absolute;top:0;left:50%;margin-left:-20px;color:var(--fg);animation:dr 1.8s ease-out infinite;pointer-events:none}
+@keyframes dr{0%{transform:translateY(16px);opacity:0}35%{opacity:.5}100%{transform:translateY(-14px);opacity:0}}#coin{width:110px;height:110px;position:relative;transform-style:preserve-3d}
+.cf{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:700;color:#fff;border:3px solid var(--fg);box-sizing:border-box}
+.cf.b{transform:rotateX(180deg)}body.intro footer{visibility:hidden}
+</style></head><body>
+<header><div id="tn"></div><div id="cnt"></div></header>
+<div style="padding:0 16px;color:var(--mut);font-size:14px" id="ph"></div>
+<main><canvas id="cv"></canvas><div id="toast"></div><div id="cd" hidden><h2 id="cdh"></h2><p id="cds"></p><div id="coinw"><svg id="arw" width="40" height="56" viewBox="0 0 40 56" aria-hidden="true"><path d="M20 52V8M6 22L20 6l14 16" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><div id="coin"><div class="cf" id="cf0"></div><div class="cf b" id="cf1"></div></div></div><div id="tap"></div><div id="bk2"><button class="btn big" id="bnk"></button><button class="btn big" id="cnt2" style="background:transparent;color:var(--fg)">Continue and risk it</button></div></div>
+<div id="over" hidden><div class="card"><h2 id="ot"></h2><p id="os"></p><button class="btn" id="again">Play again</button> <button class="btn" id="home" hidden>Title</button></div></div></main>
+<footer><div id="hint"></div><button class="btn" id="rs">Reset</button><button class="btn" id="ct">Cut</button><button class="btn" id="vw"></button><button class="btn" id="md"></button><div id="rot"><button class="btn" id="rl" aria-label="Rotate left">⟲</button><button class="btn" id="fl" aria-label="Flip">⇆</button><button class="btn" id="rr" aria-label="Rotate right">⟳</button></div></footer>
+<div id="title"><div id="t1"><svg width="230" viewBox="0 0 240 190" role="img" aria-label="Two stones balanced on top of each other"><line x1="20" y1="170" x2="220" y2="170" style="stroke:var(--mut)" stroke-width="2"/><polygon points="50,170 190,170 206,138 160,108 78,108 40,140" style="fill:var(--p2);stroke:var(--fg)" stroke-width="2" stroke-linejoin="round"/><polygon points="100,108 182,108 170,70 128,56 96,80" style="fill:var(--p1);stroke:var(--fg)" stroke-width="2" stroke-linejoin="round"/></svg><h1 class="tt">Tipping Point</h1><p class="sub">Carve it. Stack it. Don’t drop it.</p><button class="btn big" id="go">Start</button></div>
+<div id="t4" hidden><button class="bk" data-to="t1">←</button><h1 class="tt" style="font-size:26px">Choose a mode</h1>
+<button class="mc" id="mSolo"><b>Solo</b><span>Cut and stack on your own. Bank your score or risk it all for a higher one.</span></button>
+<button class="mc" id="mDuo"><b>Duo</b><span>Two players carve and stack. Don’t be the one who drops it. Best of 3 or 5.</span></button>
+<button class="mc" disabled><b>Group<i>Expansion</i></b><span>Elimination for 3 to 4 players. Whoever loses a round is out, until one player is left.</span></button></div>
+<div id="t3" hidden><button class="bk" data-to="t4">←</button><h1 class="tt" style="font-size:26px">Players</h1><div class="pc" id="pc0"></div><div class="pc" id="pc1"></div><p class="sub" id="rec"></p><button class="btn big" id="nx">Next</button><button class="btn" id="clr" hidden>Clear this record</button></div>
+<div id="t2" hidden><button class="bk" data-to="t3">←</button><h1 class="tt" style="font-size:26px">How many rounds?</h1><button class="btn big" id="b3">Best of 3</button><button class="btn big" id="b5">Best of 5</button><p class="sub">Most total points wins</p></div></div>
+<script src="https://cdn.jsdelivr.net/npm/poly-decomp@0.3.0/build/decomp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+const {Engine,Bodies,Body,Composite,Events}=Matter;
+const $=id=>document.getElementById(id),cv=$("cv"),ctx=cv.getContext("2d");
+const W=400,H=700,GY=640,PER=4,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let T={},scale=1,offX=0,offY=0,dpr=1,G={},PL=[{n:"Player 1",c:"#e0a21c"},{n:"Player 2",c:"#4b5bd6"}],M={rounds:3,round:1,scores:[0,0],start:0,done:false};
+const vib=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+function theme(){const s=getComputedStyle(document.documentElement);["bg","fg","mut","rock","p1","p2","table","ground"].forEach(k=>T[k]=s.getPropertyValue("--"+k).trim());T.p1=PL[0].c;T.p2=PL[1].c}
+function resize(){const r=cv.parentElement.getBoundingClientRect();dpr=window.devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;scale=Math.min(r.width/W,r.height/H);offX=(r.width-W*scale)/2;offY=(r.height-H*scale)/2}
+/* geometry */
+const area=p=>{let a=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length];a+=p[i].x*q.y-q.x*p[i].y}return a/2};
+const cen=p=>{const a=area(p);let x=0,y=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length],c=p[i].x*q.y-q.x*p[i].y;x+=(p[i].x+q.x)*c;y+=(p[i].y+q.y)*c}return{x:x/(6*a),y:y/(6*a)}};
+function hull(p){p=p.slice().sort((a,b)=>a.x-b.x||a.y-b.y);const cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[],up=[];
+for(const q of p){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q)}
+for(let i=p.length-1;i>=0;i--){const q=p[i];while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=0)up.pop();up.push(q)}
+lo.pop();up.pop();return lo.concat(up)}
+function clean(p){const o=[];for(const q of p)if(!o.length||Math.hypot(q.x-o[o.length-1].x,q.y-o[o.length-1].y)>1.5)o.push(q);
+if(o.length>1&&Math.hypot(o[0].x-o[o.length-1].x,o[0].y-o[o.length-1].y)<1.5)o.pop();return o.length>=3?o:null}
+/* split polygon P by polyline C that crosses its boundary exactly twice */
+function splitPoly(P,C){const n=P.length,X=[];
+for(let j=0;j<C.length-1;j++)for(let i=0;i<n;i++){const a=C[j],b=C[j+1],c=P[i],d=P[(i+1)%n],r=(b.x-a.x)*(d.y-c.y)-(b.y-a.y)*(d.x-c.x);if(!r)continue;
+const t=((c.x-a.x)*(d.y-c.y)-(c.y-a.y)*(d.x-c.x))/r,u=((c.x-a.x)*(b.y-a.y)-(c.y-a.y)*(b.x-a.x))/r;
+if(t>=0&&t<1&&u>=0&&u<1)X.push({j,pc:j+t,pp:i+u,pt:{x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y)}})}
+if(X.length!==2)return null;X.sort((p,q)=>p.pc-q.pc);const[e1,e2]=X;
+const walk=(p1,p2)=>{const o=[],end=p2>p1?Math.floor(p2):Math.floor(p2)+n;for(let k=Math.floor(p1)+1;k<=end;k++)o.push(P[k%n]);return o};
+const mid=C.slice(e1.j+1,e2.j+1),A=clean([e2.pt,...walk(e2.pp,e1.pp),e1.pt,...mid]),B=clean([e1.pt,...walk(e1.pp,e2.pp),e2.pt,...mid.slice().reverse()]);
+return A&&B?[A,B]:null}
+function extend(p){const n=p.length,a=p[0],b=p[Math.min(2,n-1)],c=p[n-1],d=p[Math.max(n-3,0)];
+const dir=(f,t)=>{const x=t.x-f.x,y=t.y-f.y,l=Math.hypot(x,y)||1;return{x:x/l,y:y/l}},s=dir(b,a),e=dir(d,c);
+return[{x:a.x+s.x*800,y:a.y+s.y*800},...p,{x:c.x+e.x*800,y:c.y+e.y*800}]}
+const MINA=1500,MAXA=5200,SMALL=3200,BASEA=3000,BASEMAX=6500;
+function cutRock(path){const r=splitPoly(G.rock,extend(path));if(!r)return{why:"Cut must cross the rock once"};
+const a=r.map(p=>Math.abs(area(p))),s=a[0]<a[1]?0:1,o={piece:r[s],rest:r[1-s]};
+if(a[s]<(G.placed.length?MINA:BASEA))o.why=G.placed.length?"Piece too small":"Base piece must be bigger";else if(a[s]>(G.placed.length?MAXA:BASEMAX))o.why="Piece too big. Cut nearer an edge";else o.ok=1;return o}
+const rad=p=>Math.max(...p.map(v=>Math.hypot(v.x,v.y)));
+const pts=p=>Math.round(Math.abs(area(p))/100);
+const wp=(l,x,y,a)=>{const c=Math.cos(a),s=Math.sin(a);return l.map(v=>({x:x+v.x*c-v.y*s,y:y+v.x*s+v.y*c}))};
+/* game */
+function makeRock(){const pts=[];for(let i=0;i<18;i++){const a=Math.random()*6.283,r=48+Math.random()*50;pts.push({x:200+Math.cos(a)*r*1.1,y:300+Math.sin(a)*r*.9})}return hull(pts)}
+function newGame(){theme();const e=Engine.create();e.positionIterations=12;e.velocityIterations=10;
+Composite.add(e.world,Bodies.rectangle(200,GY+40,3000,80,{isStatic:true,friction:1.5,frictionStatic:4}));
+Events.on(e,"collisionStart",ev=>{const nb=G.placed[G.placed.length-1];if(!nb)return;for(const p of ev.pairs){const a=p.bodyA.parent,b=p.bodyB.parent;if(a!==nb&&b!==nb)continue;G.touched=true;const o=a===nb?b:a;if(o.isStatic&&o.own!==undefined){G.placed.forEach(x=>{if(x.isStatic)Body.setStatic(x,false)});break}}});
+G={phase:"carve",cur:M.start,rp:[0,0],pend:0,ff:1,fast:false,touched:false,hotT:0,hold:0,view:false,pt:new Map(),z:1,cx:200,cy:350,curve:!!G.curve,rock:makeRock(),engine:e,placed:[],drag:null,ghost:null,ang:0,gx:200,gy:100,cam:0,over:null,pc:null};addBase();$("over").hidden=true;$("home").hidden=true;intro()}
+function addBase(){const q=[];for(let i=0;i<14;i++){const a=Math.random()*6.283,r=26+Math.random()*24;q.push({x:Math.cos(a)*r*1.3,y:Math.sin(a)*r})}
+let h=hull(q);const yc=Math.max(...h.map(p=>p.y))-8-Math.random()*10;h=hull(h.map(p=>({x:p.x,y:Math.min(p.y,yc)})));
+const c=cen(h),loc=h.map(p=>({x:p.x-c.x,y:p.y-c.y})),b=Bodies.fromVertices(0,0,[loc],{friction:1.2,frictionStatic:4,restitution:0,density:.004,frictionAir:.02});
+Body.setPosition(b,{x:200,y:0});Body.translate(b,{x:0,y:GY-.5-b.bounds.max.y});b.own=2;b.loc=loc;b.R=rad(loc);
+Composite.add(G.engine.world,b);Body.setStatic(b,true);G.placed.push(b)}
+function toast(m){const t=$("toast");t.textContent=m;t.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.opacity=0,1500)}
+function topY(){let m=GY;for(const b of G.placed)m=Math.min(m,b.bounds.min.y);return m}
+function limY(){return topY()-rad(G.ghost)-10}
+const seg=(a,b,c,d)=>{const r=(b.x-a.x)*(d.y-c.y)-(b.y-a.y)*(d.x-c.x);if(!r)return false;const t=((c.x-a.x)*(d.y-c.y)-(c.y-a.y)*(d.x-c.x))/r,u=((c.x-a.x)*(b.y-a.y)-(c.y-a.y)*(b.x-a.x))/r;return t>=0&&t<=1&&u>=0&&u<=1};
+const inP=(p,P)=>{let k=false;for(let i=0,j=P.length-1;i<P.length;j=i++)if((P[i].y>p.y)!==(P[j].y>p.y)&&p.x<(P[j].x-P[i].x)*(p.y-P[i].y)/(P[j].y-P[i].y)+P[i].x)k=!k;return k};
+function ov(A,B){for(let i=0;i<A.length;i++)for(let j=0;j<B.length;j++)if(seg(A[i],A[(i+1)%A.length],B[j],B[(j+1)%B.length]))return true;return inP(A[0],B)||inP(B[0],A)}
+function free(x,y){const P=wp(G.ghost,x,y,G.ang);if(Math.max(...P.map(v=>v.y))>GY-2)return false;for(const b of G.placed)if(ov(P,wp(b.loc,b.position.x,b.position.y,b.angle)))return false;return true}
+function fitY(x,y){const y0=limY();if(y<=y0||free(x,y))return y;let a=y0,b=y;for(let i=0;i<14;i++){const m=(a+b)/2;if(free(x,m))a=m;else b=m}return a-1.5}
+function doCut(path){const r=cutRock(path);if(!r.ok)return toast(r.why||"Try again");
+const c=cen(r.piece);G.pend=pts(r.piece);G.ghost=r.piece.map(p=>({x:p.x-c.x,y:p.y-c.y}));G.rock=r.rest;
+G.ang=0;G.gx=200;G.gy=Math.min(120,limY());G.pc=null;G.phase="stack";vib(15);hud()}
+function drop(){const p=G.ghost;G.gy=fitY(G.gx,G.gy);
+const b=Bodies.fromVertices(0,0,[p],{friction:1.2,frictionStatic:4,restitution:0,density:.004,frictionAir:.02});
+Body.setPosition(b,{x:G.gx,y:G.gy});Body.setAngle(b,G.ang);b.own=G.cur;b.loc=p;b.R=rad(p);G.touched=false;G.hold=0;
+Composite.add(G.engine.world,b);G.placed.push(b);G.ghost=null;G.t0=performance.now();G.phase="settle";vib(25);hud()}
+function end(loser){G.phase="over";G.over=loser;vib([60,40,120]);if(M.mode==="solo"){setTimeout(()=>soloEnd(0),900);return}const w=1-loser,n=G.rp[w];M.last=loser;M.scores[w]+=n;G.rp[loser]=0;setTimeout(()=>{$("ot").textContent=PL[loser].n+" dropped one";$("os").textContent=PL[w].n+" banks "+n+" points. Totals: "+M.scores[0]+" to "+M.scores[1]+".";$("again").textContent=M.round<M.rounds?"Next round":"See results";$("over").hidden=false},900)}
+const motion=()=>{let m=0;for(const b of G.placed)m=Math.max(m,b.speed*60,Math.abs(b.angularSpeed)*60*b.R);return m};
+function check(){if(G.phase!=="stack"&&G.phase!=="settle")return;
+for(let i=1;i<G.placed.length;i++)if(G.placed[i].bounds.max.y>GY-2)return end(G.cur);
+if(G.phase!=="settle")return;const el=performance.now()-G.t0,m=motion();
+if(G.touched&&(G.fast?m>8:m<4)){G.fast=!G.fast;if(!G.fast)G.hotT=performance.now()+1500}
+if(el>700&&G.touched&&m<1){if(!G.hold)G.hold=performance.now()}else G.hold=0;
+if(!((G.hold&&performance.now()-G.hold>1000)||el>8000))return;
+G.rp[G.cur]+=G.pend;G.pend=0;G.placed.forEach(b=>Body.setStatic(b,true));G.ff=1;G.fast=false;G.hold=0;G.view=false;G.cur=M.mode==="solo"?0:1-G.cur;G.phase="carve";if(Math.abs(area(G.rock))<SMALL){G.rock=makeRock();toast("New rock")}if(M.mode==="solo")soloPrompt();else showCard("turn")}
+function hud(){document.body.classList.toggle("intro",!!G.card);const c=[T.p1,T.p2];
+$("ph").textContent=(G.phase==="carve"?"Carve a piece":G.phase==="stack"?"Place it":"Settling…")+" · Round "+M.round+"/"+M.rounds+" · Total "+M.scores[0]+"–"+M.scores[1];
+$("tn").innerHTML=`<span style="color:${c[G.cur]}">${esc(PL[G.cur].n)}</span>’s turn`;
+$("cnt").innerHTML=`<span style="color:${c[0]}">${G.rp[0]}</span> · <span style="color:${c[1]}">${G.rp[1]}</span>`;
+$("hint").textContent=G.phase==="carve"?(G.view?"Drag to pan, pinch to zoom.":G.pc?"":(G.curve?"Draw a curve across the rock":"Swipe a line across the rock")+(G.placed.length?". The slice is yours to place.":" for the base. Take a bigger slice.")):G.phase==="stack"?"Drag to place. Release low to land softly.":"";
+$("rot").style.display=G.phase==="stack"?"flex":"none";$("md").style.display=G.phase==="carve"&&!G.view&&!G.pc?"block":"none";$("rs").style.display=$("ct").style.display=G.phase==="carve"&&G.pc&&!G.view?"block":"none";$("vw").style.display=G.phase==="carve"&&G.placed.length?"block":"none";$("vw").textContent=G.view?"Rock":"Tower";$("md").textContent=G.curve?"Curve":"Line";
+if(M.mode==="solo"){$("tn").textContent="Solo run";$("ph").textContent=$("ph").textContent.split(" · ")[0]+" · Best "+(ld().best||0);$("cnt").textContent=G.rp[0]+" pts"}}
+/* input */
+const lp=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left-offX)/scale,y:(e.clientY-r.top-offY)/scale}};
+function dpath(){const d=G.drag;if(!d)return null;let p=G.curve?d.pts.slice():[d.s];const l=p[p.length-1];if(Math.hypot(d.p.x-l.x,d.p.y-l.y)>3)p.push(d.p);return p.length>1?p:null}
+cv.addEventListener("pointerdown",e=>{if(G.phase==="carve"&&G.view){G.pt.set(e.pointerId,lp(e));cv.setPointerCapture(e.pointerId);return}const p=lp(e);G.drag={s:p,p,pts:[p],gx:G.gx,gy:G.gy,mv:0};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener("pointermove",e=>{if(G.phase==="carve"&&G.view&&G.pt.has(e.pointerId)){const n=lp(e),o=G.pt.get(e.pointerId);if(G.pt.size===1){G.cx-=(n.x-o.x)/G.z;G.cy-=(n.y-o.y)/G.z}else if(G.pt.size===2){const q=[...G.pt].find(([k])=>k!==e.pointerId)[1],d0=Math.hypot(o.x-q.x,o.y-q.y),d1=Math.hypot(n.x-q.x,n.y-q.y);if(d0>10)G.z=clamp(G.z*d1/d0,.4,4)}G.pt.set(e.pointerId,n);return}const d=G.drag;if(!d)return;const p=lp(e);d.p=p;d.mv=Math.hypot(p.x-d.s.x,p.y-d.s.y);
+const l=d.pts[d.pts.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)>=14)d.pts.push(p);
+if(G.phase==="stack"&&G.ghost){G.gx=clamp(d.gx+p.x-d.s.x,30,370);G.gy=fitY(G.gx,Math.max(d.gy+p.y-d.s.y,40-G.cam))}});
+cv.addEventListener("pointerup",e=>{G.pt.delete(e.pointerId);if(G.view)return;const p=dpath(),d=G.drag;G.drag=null;if(!d)return;
+if(G.phase==="carve"&&d.mv>20&&p)setCut(p);else if(G.phase==="stack"&&G.ghost&&d.mv>6)drop()});
+cv.addEventListener("pointercancel",e=>{G.drag=null;G.pt.delete(e.pointerId)});
+$("rl").onclick=()=>{if(G.ghost){G.ang-=.3;G.gy=fitY(G.gx,G.gy)}};$("rr").onclick=()=>{if(G.ghost){G.ang+=.3;G.gy=fitY(G.gx,G.gy)}};
+$("fl").onclick=()=>{if(G.ghost){G.ghost=G.ghost.map(v=>({x:-v.x,y:v.y}));G.ang=-G.ang;G.gy=fitY(G.gx,G.gy)}};
+function setCut(p){const r=cutRock(p);if(!r.ok)return toast(r.why||"Try again");G.pc={path:p};hud()}
+$("rs").onclick=()=>{G.pc=null;hud()};
+function tapReset(t){const e=$("tap");e.textContent=t;e.style.animation="none";e.offsetWidth;e.style.animation=""}
+function intro(){G.zm={t0:null};showCard(M.mode==="solo"?"solo":M.round===1?"coin":"start")}
+function showCard(k){G.card=k;G.flipped=false;G.busy=false;$("bk2").style.display="none";const i=G.cur,h=$("cdh");$("cd").hidden=false;$("cd").className=k==="turn"?"o":"";
+$("coinw").style.display=k==="coin"?"block":"none";
+if(k==="coin"){[0,1].forEach(j=>{const f=$("cf"+j);f.style.background=PL[j].c;f.textContent=PL[j].n.charAt(0).toUpperCase()});$("coin").getAnimations().forEach(a=>a.cancel());h.textContent="Flip for first turn";h.style.color="";$("cds").textContent=PL[0].n+" or "+PL[1].n;tapReset("Swipe up to flip");$("arw").style.display="block"}
+else if(k==="solo"||k==="bank"){h.style.color=PL[0].c;h.textContent=k==="solo"?"Solo run":"Stacked safely";$("cds").textContent=(k==="bank"?"Run score "+G.rp[0]+" · ":"")+"Best "+(ld().best||0);if(k==="bank"){$("bk2").style.display="flex";$("bnk").textContent="Bank "+G.rp[0]+" points";tapReset("")}else tapReset("Tap to continue")}
+else{h.textContent=PL[i].n+"’s turn";h.style.color=PL[i].c;$("cds").textContent=k==="start"?"Lost the last round, so goes first":"Round "+M.round+" of "+M.rounds+" · "+M.scores[0]+" – "+M.scores[1];tapReset("Tap to continue")}
+hud()}
+function flip(p=1){G.flipped=G.busy=true;const f=360*Math.round(3+p*3)+(M.start?180:0),hh=Math.min(200,60+p*60),du=Math.min(2600,1300+p*500);$("arw").style.display="none";tapReset("");
+$("coin").animate([{transform:"translateY(0) rotateX(0deg)"},{transform:"translateY(-"+hh+"px) rotateX("+f/2+"deg)",offset:.5},{transform:"translateY(0) rotateX("+f+"deg)"}],{duration:du,easing:"ease-out",fill:"forwards"}).onfinish=()=>{vib(35);G.busy=false;const h=$("cdh");h.textContent=PL[M.start].n+"’s turn";h.style.color=PL[M.start].c;$("cds").textContent="Won the coin flip";tapReset("Tap to continue")}}
+let sw=null;$("cd").addEventListener("pointerdown",e=>{sw=e.target.closest("#coinw")?{x:e.clientX,y:e.clientY,t:performance.now()}:null});
+$("cd").addEventListener("pointerup",e=>{if(!sw||G.card!=="coin"||G.flipped||G.busy){sw=null;return}const dy=sw.y-e.clientY,dx=Math.abs(e.clientX-sw.x),dt=Math.max(80,performance.now()-sw.t);sw=null;
+if(dy>50&&dx<dy)flip(clamp(dy/dt,.3,2.5));else $("coin").animate([{transform:"translateY(0)"},{transform:"translateY(-14px)"},{transform:"translateY(0)"}],{duration:350})});
+$("cd").onclick=()=>{const k=G.card;if(!k||G.busy)return;if(k==="bank"||(k==="coin"&&!G.flipped))return;
+if(k==="turn"){$("cd").hidden=true;G.card=null;return hud()}
+if(k==="zoom"){G.zm.t0=0;return}
+G.card="zoom";G.zm.t0=performance.now();$("cd").className="z";tapReset("Tap to skip")};$("ct").onclick=()=>{if(G.pc)doCut(G.pc.path)};$("again").onclick=()=>{if(M.mode==="solo")return startSolo();if(M.done)return showTitle();if(M.round<M.rounds){M.round++;M.start=M.last;newGame()}else finish()};
+function finish(){M.done=true;const[a,b]=M.scores;$("ot").textContent=a===b?"It’s a draw":PL[a>b?0:1].n+" wins the match";
+if(tracked()){const d=ld(),k=pk(),r=d.r[k]||(d.r[k]={w:{},d:0});if(a===b)r.d++;else{const w=nk(PL[a>b?0:1].n);r.w[w]=(r.w[w]||0)+1}sv(d)}
+$("os").textContent="Final points: "+a+" to "+b+(tracked()?". "+recText():"");$("again").textContent="Back to title"}
+function showTitle(){$("over").hidden=true;$("t1").hidden=false;$("t2").hidden=true;$("t3").hidden=true;$("t4").hidden=true;$("title").hidden=false}
+const LK="tipping-point-v1",COL=["#e0a21c","#4b5bd6","#e0573d","#1f9d8a","#c2409a","#5aa832","#2f9fd8","#8a52d6"];
+const esc=s=>String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+function ld(){try{const d=JSON.parse(localStorage.getItem(LK));if(d&&d.p&&d.r)return d}catch(e){}return{p:{},r:{}}}
+function sv(d){try{localStorage.setItem(LK,JSON.stringify(d))}catch(e){}}
+const nk=s=>s.trim().toLowerCase().replace(/\s+/g," "),dflt=n=>/^player [12]$/.test(nk(n));
+const tracked=()=>!dflt(PL[0].n)&&!dflt(PL[1].n)&&nk(PL[0].n)!==nk(PL[1].n);
+const pk=()=>{const a=nk(PL[0].n),b=nk(PL[1].n);return a<b?a+"|"+b:b+"|"+a};
+function recText(){if(!tracked())return"";const r=ld().r[pk()];if(!r)return"First meeting";const w=n=>r.w[nk(n)]||0;return PL[0].n+" "+w(PL[0].n)+" – "+w(PL[1].n)+" "+PL[1].n+(r.d?" ("+r.d+" draw"+(r.d>1?"s":"")+")":"")}
+function upRec(){$("rec").textContent=recText()||(nk(PL[0].n)&&nk(PL[0].n)===nk(PL[1].n)?"Names must be different":"");$("clr").hidden=!(tracked()&&ld().r[pk()])}
+function renderSetup(){const d=ld();for(let i=0;i<2;i++){const o=PL[1-i],el=$("pc"+i);
+el.innerHTML=`<input maxlength='12' value='${esc(PL[i].n)}' aria-label='Player ${i+1} name'><div class='sw'>${COL.map(c=>`<button class='dot${PL[i].c===c?" on":""}' style='background:${c}' data-c='${c}' aria-label='color' ${o.c===c?"disabled":""}></button>`).join("")}</div><div class='ch'>${Object.values(d.p).filter(p=>nk(p.n)!==nk(o.n)).slice(0,6).map(p=>`<button class='chip' data-n='${esc(p.n)}' data-c='${p.c}'>${esc(p.n)}</button>`).join("")}</div>`;
+el.querySelector("input").oninput=e=>{PL[i].n=e.target.value;upRec()};
+el.querySelectorAll(".dot").forEach(b=>b.onclick=()=>{PL[i].c=b.dataset.c;renderSetup()});
+el.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{PL[i].n=b.dataset.n;if(b.dataset.c!==o.c)PL[i].c=b.dataset.c;renderSetup()})}
+upRec()}
+function saveP(){const d=ld();PL.forEach(p=>{if(!dflt(p.n))d.p[nk(p.n)]={n:p.n,c:p.c}});d.last=PL;sv(d)}
+function startMatch(n){saveP();M={rounds:n,round:1,scores:[0,0],start:Math.random()<.5?0:1,done:false};$("title").hidden=true;newGame()}
+$("go").onclick=()=>{$("t1").hidden=true;$("t4").hidden=false};
+$("mDuo").onclick=()=>{$("t4").hidden=true;$("t3").hidden=false;renderSetup()};
+function startSolo(){M={mode:"solo",rounds:1,round:1,scores:[0,0],start:0,done:false};$("title").hidden=true;newGame()}
+function soloPrompt(){G.zm={t0:null};showCard("bank")}
+function bankRun(){M.done=true;G.phase="over";G.card=null;G.zm=null;$("cd").hidden=true;$("bk2").style.display="none";hud();soloEnd(G.rp[0])}
+function soloEnd(s){const d=ld();let b=d.best||0;const nb=s>b;if(nb){d.best=s;sv(d);b=s}
+$("ot").textContent=s?"Run banked":"It fell";$("os").textContent=s?"Score "+s+(nb?". New best!":". Best: "+b+"."):"Your run scores 0. Best: "+b+".";
+$("again").textContent="Play again";$("home").hidden=false;$("over").hidden=false}
+$("mSolo").onclick=startSolo;$("bnk").onclick=bankRun;$("home").onclick=showTitle;
+$("cnt2").onclick=()=>{G.zm=null;G.card=null;$("cd").hidden=true;$("bk2").style.display="none";hud()};
+document.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{["t1","t2","t3","t4"].forEach(i=>$(i).hidden=i!==b.dataset.to);if(b.dataset.to==="t3")renderSetup()});
+$("nx").onclick=()=>{PL.forEach((p,i)=>p.n=p.n.trim()||"Player "+(i+1));if(nk(PL[0].n)===nk(PL[1].n))return upRec();$("t3").hidden=true;$("t2").hidden=false};
+$("clr").onclick=e=>{const b=e.target;if(!b.dataset.arm){b.dataset.arm=1;b.textContent="Tap again to confirm";setTimeout(()=>{delete b.dataset.arm;b.textContent="Clear this record"},3000)}else{const d=ld();delete d.r[pk()];sv(d);delete b.dataset.arm;b.textContent="Clear this record";upRec()}};$("b3").onclick=()=>startMatch(3);$("b5").onclick=()=>startMatch(5);
+$("md").onclick=()=>{G.curve=!G.curve;hud()};
+function initView(){const t=topY(),b0=G.placed[0];G.cx=b0.position.x;G.cy=(t+GY)/2;G.z=clamp(440/(GY-t+90),.5,2.2)}
+$("vw").onclick=()=>{G.view=!G.view;G.drag=null;G.pt.clear();if(G.view)initView();hud()};
+/* draw */
+const poly=(p,f,s)=>{ctx.beginPath();p.forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.closePath();if(f){ctx.fillStyle=f;ctx.fill()}if(s){ctx.strokeStyle=s;ctx.stroke()}};
+const tower=()=>{const c=[T.p1,T.p2,T.rock];ctx.fillStyle=T.ground;ctx.fillRect(-1000,GY,2400,500);G.placed.forEach(b=>poly(wp(b.loc,b.position.x,b.position.y,b.angle),c[b.own],T.fg))};
+function drawZoom(){const u0=G.zm.t0===null?0:Math.min(1,(performance.now()-G.zm.t0)/3200),u=u0*u0*(3-2*u0);initView();
+const s=G.z+(.25-G.z)*u,wx=G.cx+(200-G.cx)*u,wy=G.cy+(GY-G.cy)*u;
+if(u>.4){ctx.globalAlpha=(u-.4)/.6;poly(G.rock,T.rock,T.fg);ctx.globalAlpha=1}
+ctx.save();ctx.translate(200,350+340*u);ctx.scale(s,s);ctx.translate(-wx,-wy);ctx.lineWidth=2/s;tower();ctx.restore();
+if(u0>=1){G.zm=null;G.card=null;$("cd").hidden=true;hud()}}
+function drawView(){ctx.save();ctx.translate(200,350);ctx.scale(G.z,G.z);ctx.translate(-G.cx,-G.cy);ctx.lineWidth=2/G.z;tower();if(G.pc){const r=cutRock(G.pc.path);if(r.piece){const k=cen(r.piece),L=r.piece.map(p=>({x:p.x-k.x,y:p.y-k.y}));ctx.setLineDash([6/G.z,5/G.z]);ctx.globalAlpha=.6;poly(wp(L,G.cx,topY()-rad(L)-40,0),[T.p1,T.p2][G.cur],T.fg);ctx.globalAlpha=1;ctx.setLineDash([])}}ctx.restore()}
+function draw(){const c=[T.p1,T.p2];ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=T.bg;ctx.fillRect(0,0,cv.width,cv.height);
+ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*offX,dpr*offY);ctx.lineJoin="round";ctx.lineWidth=2;
+if(G.phase==="carve"){if(G.zm){drawZoom();return}if(G.view){drawView();return}poly(G.rock,T.rock,T.fg);
+ctx.save();ctx.translate(200,690);ctx.scale(.25,.25);ctx.translate(-200,-GY);ctx.lineWidth=6;tower();ctx.restore();
+const p=dpath()||(G.pc&&G.pc.path);if(p){const r=cutRock(p);if(r.piece){ctx.globalAlpha=.6;poly(r.piece,r.ok?c[G.cur]:T.mut);ctx.globalAlpha=1}
+if(r.piece){ctx.font="15px sans-serif";ctx.textAlign="center";ctx.fillStyle=r.ok?T.fg:T.mut;ctx.fillText(r.why||"+"+pts(r.piece)+" points",200,60)}
+ctx.strokeStyle=c[G.cur];ctx.lineWidth=3;ctx.setLineDash([8,8]);ctx.beginPath();extend(p).forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.stroke();ctx.setLineDash([])}return}
+G.cam+=(Math.max(0,260-topY())-G.cam)*.08;ctx.save();ctx.translate(0,G.cam);tower();
+if(G.ghost){ctx.strokeStyle=T.mut;ctx.setLineDash([4,7]);ctx.beginPath();ctx.moveTo(G.gx,G.gy);ctx.lineTo(G.gx,GY);ctx.stroke();ctx.setLineDash([]);
+ctx.globalAlpha=.85;poly(wp(G.ghost,G.gx,G.gy,G.ang),c[G.cur],T.fg);ctx.globalAlpha=1}
+ctx.restore()}
+let last=0,acc=0;
+function frame(t){const dt=Math.min(100,t-last||16);last=t;
+let tg=1;if(G.phase==="settle"&&G.touched){if(performance.now()<G.hotT)tg=.4;else if(G.fast&&!G.hold)tg=motion()<2?2:5}G.ff+=(tg-G.ff)*(tg>G.ff?.06:.25);
+acc+=dt*G.ff;let n=0;while(acc>=16.67&&n<8){Engine.update(G.engine,16.67);acc-=16.67;n++}if(n>=8)acc=0;check();
+draw();requestAnimationFrame(frame)}
+resize();new ResizeObserver(resize).observe(cv.parentElement);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{theme();hud()});
+{const l=ld().last;if(Array.isArray(l)&&l.length===2&&l.every(p=>p&&p.n&&COL.includes(p.c)&&p.c!==l[1-l.indexOf(p)].c))PL=l.map(p=>({n:String(p.n).slice(0,12),c:p.c}))}
+newGame();requestAnimationFrame(frame);
+</script></body></html>
